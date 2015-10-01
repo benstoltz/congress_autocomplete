@@ -14,7 +14,33 @@ window.onload = function () {
     let keypresses = Observable.fromEvent(textbox, 'keypress');
     let searchButtonClicks = Observable.fromEvent(searchButton, 'click');
 
-    let resultArray = [];
+    let nameList = [];
+
+
+    let getAllCongressman = () =>
+        Observable.create(function forEach(observable) {
+            let cancelled = false;
+            let url = "http://congress.api.sunlightfoundation.com/legislators?per_page=all&apikey=9f64292279cc4c40aea72946979597a2";
+            $.getJSON(url, data => {
+                if (!cancelled) {
+                    observable.onNext(data.results);
+                    observable.onCompleted();
+                }
+            });
+
+            return function dispose() {
+                cancelled = true;
+            }
+        });
+
+
+
+    getAllCongressman().forEach( (resultSet) => {
+        resultSet.forEach( (result) => {
+            nameList.push(result.first_name + " " + result.last_name);
+        });
+        new Awesomplete(textbox, {list: nameList} )
+    });
 
 
     let getCongressman = term =>
@@ -66,6 +92,18 @@ window.onload = function () {
             results.value += result.first_name + " " + result.last_name + "\n";
         })
     });
+
+    //searchResultSets.forEach( (resultSet) => {
+    //    resultSet.forEach( (result) => {
+    //        nameList.push(result.first_name + " " + result.last_name);
+    //        console.log(nameList);
+    //    })
+    //});
+
+
+
+
+
 
     //getCongressman('Leahy').forEach( (results) =>
     //        console.log(results)
