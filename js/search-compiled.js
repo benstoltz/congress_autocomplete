@@ -1,8 +1,8 @@
+'use strict';
+
 /**
  * Created by ben7664 on 9/30/2015.
  */
-
-'use strict';
 
 window.onload = function () {
 
@@ -11,6 +11,8 @@ window.onload = function () {
     var textbox = document.getElementById('textbox');
     var results = document.getElementById('results');
     var searchButton = document.getElementById('searchButton');
+
+    var resultList = document.getElementById('resultList');
 
     var keypresses = Observable.fromEvent(textbox, 'keypress');
     var searchButtonClicks = Observable.fromEvent(searchButton, 'click');
@@ -39,12 +41,13 @@ window.onload = function () {
             nameList.push(result.first_name + " " + result.last_name);
         });
         new Awesomplete(textbox, { list: nameList });
+        console.log(resultSet);
     });
 
     var getCongressman = function getCongressman(term) {
         return Observable.create(function forEach(observable) {
             var cancelled = false;
-            var url = "http://congress.api.sunlightfoundation.com/legislators/locate?apikey=9f64292279cc4c40aea72946979597a2&zip=" + encodeURIComponent(term);
+            var url = "http://congress.api.sunlightfoundation.com/legislators?query=" + encodeURIComponent(term) + "&apikey=9f64292279cc4c40aea72946979597a2";
             $.getJSON(url, function (data) {
                 if (!cancelled) {
                     observable.onNext(data.results);
@@ -68,7 +71,7 @@ window.onload = function () {
             return document.getElementById('searchForm').style.display = "none";
         });
 
-        return keypresses.throttle(20).map(function (key) {
+        return keypresses.throttle(1200).map(function (key) {
             return textbox.value;
         }).distinctUntilChanged().map(function (search) {
             return getCongressman(search).retry(3);
@@ -86,6 +89,10 @@ window.onload = function () {
     searchResultSets.forEach(function (resultSet) {
         resultSet.forEach(function (result) {
             results.value += result.first_name + " " + result.last_name + "\n";
+            console.log(result);
+            var entry = document.createElement('li');
+            entry.appendChild(document.createTextNode(result.first_name + " " + result.last_name + " | " + result.bioguide_id));
+            resultList.appendChild(entry);
         });
     });
 

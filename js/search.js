@@ -10,6 +10,9 @@ window.onload = function () {
     let results = document.getElementById('results');
     let searchButton = document.getElementById('searchButton');
 
+    let resultList = document.getElementById('resultList');
+
+
 
     let keypresses = Observable.fromEvent(textbox, 'keypress');
     let searchButtonClicks = Observable.fromEvent(searchButton, 'click');
@@ -40,13 +43,14 @@ window.onload = function () {
             nameList.push(result.first_name + " " + result.last_name);
         });
         new Awesomplete(textbox, {list: nameList} )
+        console.log(resultSet);
     });
 
 
     let getCongressman = term =>
         Observable.create(function forEach(observable) {
             let cancelled = false;
-            let url = "http://congress.api.sunlightfoundation.com/legislators/locate?apikey=9f64292279cc4c40aea72946979597a2&zip=" + encodeURIComponent(term);
+            let url = "http://congress.api.sunlightfoundation.com/legislators?query=" + encodeURIComponent(term) + "&apikey=9f64292279cc4c40aea72946979597a2";
             $.getJSON(url, data => {
                 if (!cancelled) {
                     observable.onNext(data.results);
@@ -69,7 +73,7 @@ window.onload = function () {
             document.getElementById('searchForm').style.display = "none"
         );
 
-        return keypresses.throttle(20).
+        return keypresses.throttle(1200).
             map( (key) => textbox.value ).
             distinctUntilChanged().
             map( search =>
@@ -90,6 +94,11 @@ window.onload = function () {
     searchResultSets.forEach( (resultSet) => {
         resultSet.forEach( (result) => {
             results.value += result.first_name + " " + result.last_name + "\n";
+            console.log(result);
+            let entry = document.createElement('li');
+            entry.appendChild(document.createTextNode(result.first_name + " " + result.last_name + " | " + result.bioguide_id));
+            resultList.appendChild(entry);
+
         })
     });
 
